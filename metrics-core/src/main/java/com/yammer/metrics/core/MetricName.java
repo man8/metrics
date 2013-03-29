@@ -2,6 +2,7 @@ package com.yammer.metrics.core;
 
 import javax.management.ObjectName;
 import java.lang.reflect.Method;
+import static javax.management.ObjectName.quote;
 
 /**
  * A value class encapsulating a metric's owning class and name.
@@ -165,18 +166,26 @@ public class MetricName implements Comparable<MetricName> {
 
     private static String createMBeanName(String group, String type, String name, String scope) {
         final StringBuilder nameBuilder = new StringBuilder();
-        nameBuilder.append(ObjectName.quote(group));
+        nameBuilder.append(quoteIfNecessary(group));
         nameBuilder.append(":type=");
-        nameBuilder.append(ObjectName.quote(type));
+        nameBuilder.append(quoteIfNecessary(type));
         if (scope != null) {
             nameBuilder.append(",scope=");
-            nameBuilder.append(ObjectName.quote(scope));
+            nameBuilder.append(quoteIfNecessary(scope));
         }
         if (name.length() > 0) {
             nameBuilder.append(",name=");
-            nameBuilder.append(ObjectName.quote(name));
+            nameBuilder.append(quoteIfNecessary(name));
         }
         return nameBuilder.toString();
+    }
+    
+    private static String quoteIfNecessary(final String objectName) {
+        if (objectName.matches(".*[\n\\\\\"*?].*")) {
+            return quote(objectName);
+        } else {
+            return objectName;
+        }
     }
 
     /**
